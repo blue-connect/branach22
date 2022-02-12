@@ -316,7 +316,7 @@ class ResCompany(models.Model):
             existing_record = self.env['res.partner'].search([('pd_id', '=', org_rec.get('pd_id'))])
             if not existing_record:
                 # Then create
-                org_id = self.env['res.partner'].create(org_reoc)
+                org_id = self.env['res.partner'].create(org_rec)
             else:
                 # Update the record
                 existing_record.write(org_rec)
