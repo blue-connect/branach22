@@ -368,7 +368,7 @@ class ResCompany(models.Model):
                 if contacts_data_dict:
                     contacts_data_lst.append(contacts_data_dict)
 
-        _logger.info("----------------------------------CONTACTS DATA LST -------------------------".format(contacts_data_lst))
+        _logger.info("---------------------------CONTACTS DATA LST -------------------------".format(contacts_data_lst))
 
         for contacts_rec in contacts_data_lst:
             # Since record which we will create is of individual type
@@ -383,7 +383,6 @@ class ResCompany(models.Model):
                     new_org = self.createOrganizationById(parent_id)
                     contacts_rec['parent_id'] = new_org
                 existing_record.write(contacts_rec)
-
 
     def import_products(self):
         '''
@@ -679,9 +678,7 @@ class ResCompany(models.Model):
         '''
         # self.check_credentials()
         _logger.info("*****IMPORT DEALS****")
-        print("\n\none")
         deals_data = self.pipeline_caller("deals")
-        print("\n\nTwo", deals_data)
 
         # Iterate in data key
         # This will go to create in odoo
@@ -1054,7 +1051,6 @@ class ResCompany(models.Model):
             if not pd_token_url:
                 raise UserError(_("Please set Token URL from General Settings"))
             headers = {}
-            print("\n\n Client Id", client_id, "\n\n Client Secret", client_secret)
             combined_key = client_id + ":" + client_secret
             encoded_key = base64.b64encode(bytes(combined_key, 'utf-8'))
             headers['Authorization'] = "Basic " + encoded_key.decode('utf-8')
