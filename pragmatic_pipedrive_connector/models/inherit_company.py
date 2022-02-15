@@ -325,7 +325,7 @@ class ResCompany(models.Model):
                 existing_record.write(org_rec)
                 self._cr.commit()
 
-        return org_id or existing_record
+        return org_id
 
     def import_contacts(self):
         '''
@@ -382,10 +382,10 @@ class ResCompany(models.Model):
                 self.env['res.partner'].create(contacts_rec)
                 self._cr.commit()
             else:
-                # parent_id = contacts_rec.get('parent_id')
-                # if existing_record.id == parent_id:
-                #     new_org = self.createOrganizationById(parent_id)
-                #     contacts_rec['parent_id'] = new_org
+                parent_id = contacts_rec.get('parent_id')
+                if existing_record.id == parent_id:
+                    #new_org = self.createOrganizationById(parent_id)
+                    contacts_rec['parent_id'] = False
                 existing_record.write(contacts_rec)
                 self._cr.commit()
 
