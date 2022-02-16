@@ -25,28 +25,34 @@ class ResCompany(models.Model):
         uri = "{0}persons/%s" % (pd_id)
         uri_caller = uri.format(domain)
 
-        company_id = http.request.env['res.users'].sudo().search([('id', '=', http.request.uid)]).company_id
-        headers = {}
-        headers['Authorization'] = "Bearer " + company_id.access_token
-        headers['content-type'] = 'application/x-www-form-urlencoded'
-        headers['Accept'] = 'application/json'
-        if company_id.access_token:
-            _logger.info("Access token Found")
-        else:
-            raise UserError(_("Access Token not found!!!"))
-        response = requests.get(url=uri_caller, headers=headers, verify=False)
-        contact_data = response.json()
-        _logger.info("**************contact1 {}".format(contact_data))
-        if contact_data:
-            res = contact_data.get('data')
-            if res:
-                if res.get('active_flag') == True:
-                    _logger.info("This contact exists in pipedrive")
-                    return True
+        # company_id = http.request.env['res.users'].sudo().search([('id', '=', http.request.uid)]).company_id
+        company_id = None
+        user_id = self.env['res.users'].search([])
+        for company_id in user_id.company_ids:
+            if company_id.access_token and company_id.refresh_token:
+                company_id = company_id
+        if company_id:
+            headers = {}
+            headers['Authorization'] = "Bearer " + company_id.access_token
+            headers['content-type'] = 'application/x-www-form-urlencoded'
+            headers['Accept'] = 'application/json'
+            if company_id.access_token:
+                _logger.info("Access token Found")
+            else:
+                raise UserError(_("Access Token not found!!!"))
+            response = requests.get(url=uri_caller, headers=headers, verify=False)
+            contact_data = response.json()
+            _logger.info("**************contact1 {}".format(contact_data))
+            if contact_data:
+                res = contact_data.get('data')
+                if res:
+                    if res.get('active_flag') == True:
+                        _logger.info("This contact exists in pipedrive")
+                        return True
 
-                else:
-                    _logger.warning("This contact does not exists in pipedrive")
-                    return False
+                    else:
+                        _logger.warning("This contact does not exists in pipedrive")
+                        return False
 
     def check_organization_exists(self, pd_id):
         '''
@@ -58,28 +64,34 @@ class ResCompany(models.Model):
         uri = "{0}organizations/%s" % (pd_id)
         uri_caller = uri.format(domain)
 
-        company_id = http.request.env['res.users'].sudo().search([('id', '=', http.request.uid)]).company_id
-        headers = {}
-        headers['Authorization'] = "Bearer " + company_id.access_token
-        headers['content-type'] = 'application/x-www-form-urlencoded'
-        headers['Accept'] = 'application/json'
-        if company_id.access_token:
-            _logger.info("Access token Found")
-        else:
-            raise UserError(_("Access Token not found!!!"))
-        response = requests.get(url=uri_caller, headers=headers, verify=False)
-        contact_data = response.json()
-        _logger.info("**************contact_data2 {}".format(contact_data))
-        if contact_data:
-            res = contact_data.get('data')
-            if res:
-                if res.get('active_flag'):
-                    _logger.info("This organization exists in pipedrive")
-                    return True
+        # company_id = http.request.env['res.users'].sudo().search([('id', '=', http.request.uid)]).company_id
+        company_id = None
+        user_id = self.env['res.users'].search([])
+        for company_id in user_id.company_ids:
+            if company_id.access_token and company_id.refresh_token:
+                company_id = company_id
+        if company_id:
+            headers = {}
+            headers['Authorization'] = "Bearer " + company_id.access_token
+            headers['content-type'] = 'application/x-www-form-urlencoded'
+            headers['Accept'] = 'application/json'
+            if company_id.access_token:
+                _logger.info("Access token Found")
+            else:
+                raise UserError(_("Access Token not found!!!"))
+            response = requests.get(url=uri_caller, headers=headers, verify=False)
+            contact_data = response.json()
+            _logger.info("**************contact_data2 {}".format(contact_data))
+            if contact_data:
+                res = contact_data.get('data')
+                if res:
+                    if res.get('active_flag'):
+                        _logger.info("This organization exists in pipedrive")
+                        return True
 
-                else:
-                    _logger.warning("This organization does not exists in pipedrive")
-                    return False
+                    else:
+                        _logger.warning("This organization does not exists in pipedrive")
+                        return False
 
     def create_organizations(self, caller):
         '''
@@ -91,28 +103,34 @@ class ResCompany(models.Model):
         domain = self.env['ir.config_parameter'].sudo().get_param('pragmatic_pipedrive_connector.pd_api_url')
         uri = '{0}%s' % (caller)
         uri_caller = uri.format(domain)
-        company_id = http.request.env['res.users'].sudo().search([('id', '=', http.request.uid)]).company_id
+        # company_id = http.request.env['res.users'].sudo().search([('id', '=', http.request.uid)]).company_id
+        company_id = None
+        user_id = self.env['res.users'].search([])
+        for company_id in user_id.company_ids:
+            if company_id.access_token and company_id.refresh_token:
+                company_id = company_id
+        if company_id:
 
-        for rec in self:
-            headers = {}
-            headers['Authorization'] = "Bearer " + company_id.access_token
-            headers['content-type'] = 'application/x-www-form-urlencoded'
+            for rec in self:
+                headers = {}
+                headers['Authorization'] = "Bearer " + company_id.access_token
+                headers['content-type'] = 'application/x-www-form-urlencoded'
 
-            payload = {
-                'name': rec.name,
-                'owner_id': rec.id
-            }
-            if company_id.access_token:
-                _logger.info("Access token Found")
-            else:
-                raise UserError(_("Access Token not found!!!"))
+                payload = {
+                    'name': rec.name,
+                    'owner_id': rec.id
+                }
+                if company_id.access_token:
+                    _logger.info("Access token Found")
+                else:
+                    raise UserError(_("Access Token not found!!!"))
 
-            response = requests.post(url=uri_caller, data=payload, headers=headers, verify=False)
-            data = response.json()
-            _logger.info("**************data1 {}".format(data))
-            if data.get('data').get('id'):
-                rec.write({'pd_id': data.get('data').get('id')})
-            return data
+                response = requests.post(url=uri_caller, data=payload, headers=headers, verify=False)
+                data = response.json()
+                _logger.info("**************data1 {}".format(data))
+                if data.get('data').get('id'):
+                    rec.write({'pd_id': data.get('data').get('id')})
+                return data
 
     def odoo_update_organizations(self, pd_id):
         '''
@@ -123,58 +141,70 @@ class ResCompany(models.Model):
         uri = "{0}organizations/%s" % (pd_id)
         uri_caller = uri.format(domain)
 
-        company_id = http.request.env['res.users'].sudo().search([('id', '=', http.request.uid)]).company_id
+        # company_id = http.request.env['res.users'].sudo().search([('id', '=', http.request.uid)]).company_id
+        company_id = None
+        user_id = self.env['res.users'].search([])
+        for company_id in user_id.company_ids:
+            if company_id.access_token and company_id.refresh_token:
+                company_id = company_id
+        if company_id:
 
-        for rec in self:
-            headers = {}
-            headers['Authorization'] = "Bearer " + company_id.access_token
-            headers['content-type'] = 'application/x-www-form-urlencoded'
-            payload = {
-                'id': rec.pd_id,
-                'name': rec.name,
-                'owner_id': rec.id,
-            }
+            for rec in self:
+                headers = {}
+                headers['Authorization'] = "Bearer " + company_id.access_token
+                headers['content-type'] = 'application/x-www-form-urlencoded'
+                payload = {
+                    'id': rec.pd_id,
+                    'name': rec.name,
+                    'owner_id': rec.id,
+                }
 
-            if company_id.access_token:
-                _logger.info("Access token Found")
-            else:
-                raise UserError(_("Access Token not found!!!"))
+                if company_id.access_token:
+                    _logger.info("Access token Found")
+                else:
+                    raise UserError(_("Access Token not found!!!"))
 
-            response = requests.put(url=uri_caller, data=payload, headers=headers, verify=False)
-            data = response.json()
-            _logger.info("**************update1 {}".format(data))
+                response = requests.put(url=uri_caller, data=payload, headers=headers, verify=False)
+                data = response.json()
+                _logger.info("**************update1 {}".format(data))
 
     def create_contacts(self, caller):
         domain = self.env['ir.config_parameter'].sudo().get_param('pragmatic_pipedrive_connector.pd_api_url')
         uri = '{0}%s' % (caller)
         uri_caller = uri.format(domain)
-        company_id = http.request.env['res.users'].sudo().search([('id', '=', http.request.uid)]).company_id
+        # company_id = http.request.env['res.users'].sudo().search([('id', '=', http.request.uid)]).company_id
+        company_id = None
+        user_id = self.env['res.users'].search([])
+        for company_id in user_id.company_ids:
+            if company_id.access_token and company_id.refresh_token:
+                company_id = company_id
+        if company_id:
 
-        for rec in self:
-            headers = {}
-            headers['Authorization'] = "Bearer " + company_id.access_token
-            headers['content-type'] = 'application/x-www-form-urlencoded'
+            for rec in self:
+                headers = {}
+                headers['Authorization'] = "Bearer " + company_id.access_token
+                headers['content-type'] = 'application/x-www-form-urlencoded'
 
-            payload = {
-                'name': rec.name,
-                'email': rec.email,
-                'phone': rec.mobile,
-                'owner_id': rec.id
-            }
-            if rec.parent_id.pd_id:
-                payload.update({'org_id': rec.parent_id.pd_id})
-            if company_id.access_token:
-                _logger.info("Access token Found")
-            else:
-                raise UserError(_("Access Token not found!!!"))
+                payload = {
+                    'name': rec.name,
+                    'email': rec.email,
+                    'phone': rec.mobile,
+                    'owner_id': rec.id
+                }
+                if rec.parent_id.pd_id:
+                    payload.update({'org_id': rec.parent_id.pd_id})
+                if company_id.access_token:
+                    _logger.info("Access token Found")
+                else:
+                    raise UserError(_("Access Token not found!!!"))
 
-            response = requests.post(url=uri_caller, data=payload, headers=headers, verify=False)
-            data = response.json()
-            _logger.info("**************contact_create1 {}".format(data))
-            if data.get('data'):
-                if data.get('data').get('id'):
-                    rec.write({'pd_id': data.get('data').get('id')})
-                return data
+                response = requests.post(url=uri_caller, data=payload, headers=headers, verify=False)
+                data = response.json()
+                _logger.info("**************contact_create1 {}".format(data))
+                if data.get('data'):
+                    if data.get('data').get('id'):
+                        rec.write({'pd_id': data.get('data').get('id')})
+                    return data
 
     def odoo_update_contacts(self, pd_id):
         '''
@@ -185,52 +215,58 @@ class ResCompany(models.Model):
         uri = "{0}persons/%s" % (pd_id)
         uri_caller = uri.format(domain)
 
-        company_id = http.request.env['res.users'].sudo().search([('id', '=', http.request.uid)]).company_id
+        # company_id = http.request.env['res.users'].sudo().search([('id', '=', http.request.uid)]).company_id
+        company_id = None
+        user_id = self.env['res.users'].search([])
+        for company_id in user_id.company_ids:
+            if company_id.access_token and company_id.refresh_token:
+                company_id = company_id
+        if company_id:
 
-        for rec in self:
-            if rec.parent_id:
-                headers = {}
-                headers['Authorization'] = "Bearer " + company_id.access_token
-                headers['content-type'] = 'application/x-www-form-urlencoded'
-                search_org = self.env['res.partner'].search([('parent_id', '=', rec.parent_id.id)])
-                payload = {
-                    'id': rec.pd_id,
-                    'name': rec.name,
-                    'phone': rec.mobile,
-                    'owner_id': rec.id,
-                }
+            for rec in self:
+                if rec.parent_id:
+                    headers = {}
+                    headers['Authorization'] = "Bearer " + company_id.access_token
+                    headers['content-type'] = 'application/x-www-form-urlencoded'
+                    search_org = self.env['res.partner'].search([('parent_id', '=', rec.parent_id.id)])
+                    payload = {
+                        'id': rec.pd_id,
+                        'name': rec.name,
+                        'phone': rec.mobile,
+                        'owner_id': rec.id,
+                    }
 
-                if rec.parent_id.pd_id:
-                    payload.update({'org_id': rec.parent_id.pd_id})
-                if company_id.access_token:
-                    _logger.info("Access token Found")
+                    if rec.parent_id.pd_id:
+                        payload.update({'org_id': rec.parent_id.pd_id})
+                    if company_id.access_token:
+                        _logger.info("Access token Found")
+                    else:
+                        raise UserError(_("Access Token not found!!!"))
+
+                    response = requests.put(url=uri_caller, data=payload, headers=headers, verify=False)
+                    data = response.json()
+                    _logger.info("**************contact_update1 {}".format(data))
+                    return data
                 else:
-                    raise UserError(_("Access Token not found!!!"))
+                    headers = {}
+                    headers['Authorization'] = "Bearer " + company_id.access_token
+                    headers['content-type'] = 'application/x-www-form-urlencoded'
+                    payload = {
+                        'id': rec.pd_id,
+                        'name': rec.name,
+                    }
 
-                response = requests.put(url=uri_caller, data=payload, headers=headers, verify=False)
-                data = response.json()
-                _logger.info("**************contact_update1 {}".format(data))
-                return data
-            else:
-                headers = {}
-                headers['Authorization'] = "Bearer " + company_id.access_token
-                headers['content-type'] = 'application/x-www-form-urlencoded'
-                payload = {
-                    'id': rec.pd_id,
-                    'name': rec.name,
-                }
+                    if company_id.access_token:
+                        _logger.info("Access token Found")
+                    else:
+                        raise UserError(_("Access Token not found!!!"))
 
-                if company_id.access_token:
-                    _logger.info("Access token Found")
-                else:
-                    raise UserError(_("Access Token not found!!!"))
+                    response = requests.put(url=uri_caller, data=payload, headers=headers, verify=False)
+                    data = response.json()
+                    _logger.info("**************1 {}".format(data))
 
-                response = requests.put(url=uri_caller, data=payload, headers=headers, verify=False)
-                data = response.json()
-                _logger.info("**************1 {}".format(data))
-
-                if data.get('data').get('id'):
-                    _logger.info("data coming-----------------")
+                    if data.get('data').get('id'):
+                        _logger.info("data coming-----------------")
 
 
     # def contacts_filter(self):

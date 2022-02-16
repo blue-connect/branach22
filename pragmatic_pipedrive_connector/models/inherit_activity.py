@@ -57,7 +57,7 @@ class ResActivity(models.Model):
 
         for activity in self:
             # extract value to generate next activities
-            if activity.force_next:
+            if activity.chaining_type == 'trigger':
                 Activity = self.env['mail.activity'].with_context(activity_previous_deadline=activity.date_deadline)  # context key is required in the onchange to set deadline
                 vals = Activity.default_get(Activity.fields_get())
 
@@ -81,7 +81,7 @@ class ResActivity(models.Model):
                     'feedback': feedback,
                     'display_assignee': activity.user_id != self.env.user
                 },
-                subtype_id=self.env['ir.model.data'].xmlid_to_res_id('mail.mt_activities'),
+                subtype_id=self.env['ir.model.data']._xmlid_to_res_id('mail.mt_activities'),
                 mail_activity_type_id=activity.activity_type_id.id,
                 attachment_ids=[(4, attachment_id) for attachment_id in attachment_ids] if attachment_ids else [],
             )
