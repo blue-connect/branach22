@@ -45,7 +45,7 @@ class ResCompany(models.Model):
 
             headers['content-type'] = 'application/x-www-form-urlencoded'
             more_items_in_collection = True
-            check_token_req = requests.get(url=uri_caller, headers=headers, verify=False)
+            check_token_req = requests.get(url=uri_caller, headers=headers, verify=True)
             check_token = check_token_req.json()
             if 'error' or 'errorCode' in check_token.keys():
                 error_msg = check_token.get('error')
@@ -53,8 +53,7 @@ class ResCompany(models.Model):
                     raise UserError(_(error_msg))
             start = 0
             while more_items_in_collection:
-                responses = requests.get(url=uri_caller, headers=headers, verify=False,
-                                         params={'start': start, 'limit': '100'})
+                responses = requests.get(url=uri_caller, headers=headers, verify=True,params={'start': start, 'limit': '100'})
                 datas = responses.json()
                 if datas:
                     additional_data = datas.get('additional_data')
@@ -95,7 +94,7 @@ class ResCompany(models.Model):
 
             headers['content-type'] = 'application/x-www-form-urlencoded'
 
-            response = requests.get(url=uri_caller, headers=headers, verify=False, params={'limit': '500'})
+            response = requests.get(url=uri_caller, headers=headers, verify=True, params={'limit': '500'})
             data = response.json()
             _logger.info("**************==== {}".format(data))
             return data
@@ -120,7 +119,7 @@ class ResCompany(models.Model):
                 raise UserError(_("Access Token not found!!!"))
 
             headers['content-type'] = 'application/x-www-form-urlencoded'
-            response = requests.get(url=uri_caller, headers=headers, verify=False)
+            response = requests.get(url=uri_caller, headers=headers, verify=True)
             data = response.json()
             _logger.info("**************=====------ {}".format(data))
             return data
@@ -234,8 +233,8 @@ class ResCompany(models.Model):
         for org_rec in organization_data_lst:
             # Since record which we will create is of company #type
             org_rec['company_type'] = 'company'
-            existing_record = self.env['res.partner'].search(
-                [('pd_id', '=', org_rec.get('pd_id')), ('id', '!=', org_rec.get('pd_id'))])
+            org_rec['is_company'] = True
+            existing_record = self.env['res.partner'].search([('pd_id', '=', org_rec.get('pd_id')),('is_company', '=', True)])
             if not existing_record:
                 # Then create
                 org_id = self.env['res.partner'].create(org_rec)
@@ -258,7 +257,7 @@ class ResCompany(models.Model):
             headers = {}
             headers['Authorization'] = "Bearer " + company_id.access_token
 
-            response = requests.get(url=uri_caller, headers=headers, verify=False)
+            response = requests.get(url=uri_caller, headers=headers, verify=True)
             data = response.json()
 
             _logger.info("In createOrganizationById **************---------- {}".format(data))
@@ -291,8 +290,8 @@ class ResCompany(models.Model):
         for org_rec in organization_data_lst:
             # Since record which we will create is of company #type
             org_rec['company_type'] = 'company'
-            existing_record = self.env['res.partner'].search(
-                [('pd_id', '=', org_rec.get('pd_id'))])
+            org_rec['is_company'] = True
+            existing_record = self.env['res.partner'].search([('pd_id', '=', org_rec.get('pd_id')),('is_company', '=', True)])
             if not existing_record:
                 # Then create
                 org_id = self.env['res.partner'].create(org_rec)
@@ -338,9 +337,7 @@ class ResCompany(models.Model):
                 if contacts.get('org_id'):
                     if isinstance(contacts.get('org_id'), dict):
                         if contacts.get('org_id').get('value'):
-                            search_partner_id = self.env['res.partner'].search(
-                                [('pd_id', '=', contacts.get('org_id').get('value')),
-                                 ('id', '!=', contacts.get('org_id').get('value'))])
+                            search_partner_id = self.env['res.partner'].search([('pd_id', '=', contacts.get('org_id').get('value')),('is_company', '=', True)])
                             if search_partner_id:
                                 contacts_data_dict['parent_id'] = search_partner_id.id
                             else:
@@ -353,12 +350,13 @@ class ResCompany(models.Model):
         for contacts_rec in contacts_data_lst:
             # Since record which we will create is of individual type
             contacts_rec['company_type'] = 'person'
-
-            existing_record = self.env['res.partner'].search(
-                [('pd_id', '=', contacts_rec.get('pd_id')), ('id', '!=', contacts_rec.get('pd_id'))])
+            contacts_rec['is_company'] = False
+            existing_record = self.env['res.partner'].search([('pd_id', '=', contacts_rec.get('pd_id')), ('is_company', '=', False)])
             if not existing_record:
                 self.env['res.partner'].create(contacts_rec)
             else:
+                if existing_record.id == contacts_rec.get('parent_id',0):
+                    contacts_rec['parent_id'] = False
                 existing_record.write(contacts_rec)
 
     def import_products(self):
@@ -931,7 +929,7 @@ class ResCompany(models.Model):
                         raise UserError(_("Access Token not found!!!"))
 
                     headers['content-type'] = 'application/x-www-form-urlencoded'
-                    response = requests.post(url=uri_caller, data=payload, headers=headers, verify=False)
+                    response = requests.post(url=uri_caller, data=payload, headers=headers, verify=True)
                     data = response.json()
                     _logger.info("**************33 {}".format(data))
                     rec.write({'pd_id': data.get('data').get('id')})
@@ -967,7 +965,7 @@ class ResCompany(models.Model):
                         _logger.info("Access token Found")
                     else:
                         raise UserError(_("Access Token not found!!!"))
-                    response = requests.put(url=uri_caller, data=payload, headers=headers, verify=False)
+                    response = requests.put(url=uri_caller, data=payload, headers=headers, verify=True)
                     data = response.json()
                     _logger.info("**************44 {}".format(data))
 
@@ -1041,7 +1039,7 @@ class ResCompany(models.Model):
                 'grant_type': 'refresh_token',
                 'refresh_token': company_id.refresh_token,
             }
-            refresh_token_req = requests.post(pd_token_url, data=payload, headers=headers, verify=False)
+            refresh_token_req = requests.post(pd_token_url, data=payload, headers=headers, verify=True)
             if refresh_token_req:
                 refresh_token_response = json.loads(refresh_token_req.text)
                 _logger.info("REFRESH TOKEN RESPONSE FROM CONTROLLER IS {}".format(refresh_token_response))
