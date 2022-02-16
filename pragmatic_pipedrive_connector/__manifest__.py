@@ -1,6 +1,6 @@
 {
     'name': 'Odoo Pipedrive Connector',
-    'version': '15.0.0',
+    'version': '15.0.3',
     'author': 'Pragmatic TechSoft Pvt Ltd.',
     'website': 'www.pragtech.co.in',
     'depends': ['base', 'sale', 'crm', 'mail'],
@@ -45,7 +45,6 @@ piepedrive module
         "cron/refresh_token_cron.xml"
     ],
     'images': ['static/description/Animated-pipedrive-connector.gif'],
-    #'images': ['static/description/end-of-year-sale-main.jpg'],
     'live_test_url': 'https://www.pragtech.co.in/company/proposal-form.html?id=103&name=odoo-pipedrive-connector',
     'license': 'OPL-1',
     'price': 150,
